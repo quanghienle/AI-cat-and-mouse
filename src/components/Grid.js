@@ -3,7 +3,7 @@ import appConfig from '../appConfig';
 import InitialState from '../utils/InitialState'
 import Button from '@material-ui/core/Button';
 import Cell from './Cell';
-import Movements from '../utils/ObjectMovements';
+import Movements from '../utils/Movements';
 
 class Grid extends Component {
     constructor(props) {
@@ -20,14 +20,16 @@ class Grid extends Component {
 
     }
 
+    ObjMovements = new Movements();
+
 
     mouseMove = (dir) => {
-        const nextMove = Movements.mouse[dir](this.state.mouseLocation);
+        const nextMove = this.ObjMovements.mouseMove(dir, this.state.mouseLocation);
         this.setState({ mouseLocation: nextMove });
     }
 
     catMove = (dir) => {
-        const nextMove = Movements.cat[dir](this.state.catLocation);
+        const nextMove = this.ObjMovements.catMove(dir, this.state.catLocation);
         this.setState({ catLocation: nextMove });
     }
 
@@ -66,14 +68,14 @@ class Grid extends Component {
                         backgroundSize: `${this.state.cellSize}px ${this.state.cellSize}px`,
                         backgroundImage: "linear-gradient(to right, lavender 1px, transparent 1px), linear-gradient(to bottom, lavender 1px, transparent 1px)",
                     }}>
-                    {/* 
-                    {Object.keys(Movements.mouse).map(dir => {
+                    
+                    {/* {Object.keys(Movements.mouse).map(dir => {
                         const coor = Movements.mouse[dir](this.state.mouseLocation, this.state.gridSize - 1);
-                        return <Cell cellName="guide" xyCoor={coor} description={dir} onClick={() => this.mouseMove(dir)} />
+                        return <Cell cellName="guide" xyCoor={coor} onClick={() => this.mouseMove(dir)} />
                     })} */}
 
-                    {Object.keys(Movements.cat).map(dir => {
-                        const coor = Movements.cat[dir](this.state.catLocation);
+                    {Object.keys(this.ObjMovements.catMovements).map(dir => {
+                        const coor = this.ObjMovements.catMove(dir, this.state.catLocation);
                         return <Cell cellName="guide" xyCoor={coor} onClick={() => this.catMove(dir)} />
                     })}
 
@@ -89,7 +91,7 @@ class Grid extends Component {
                 </div>
 
                 <div>
-                    {Object.keys(Movements.mouse).map(dir => {
+                    {Object.keys(this.ObjMovements.mouseMovements).map(dir => {
                         return <Button
                             variant="outlined"
                             color="primary"
@@ -101,7 +103,7 @@ class Grid extends Component {
                 </div>
 
                 <div>
-                    {Object.keys(Movements.cat).map(dir => {
+                    {Object.keys(this.ObjMovements.catMovements).map(dir => {
                         return <Button
                             variant="outlined"
                             color="primary"

@@ -1,5 +1,9 @@
 import appConfig from '../appConfig';
-import Movements from './ObjectMovements';
+import Movements from './Movements';
+
+const ObjMovements = new Movements();
+
+// console.log(ObjMovements)
 
 const grid = [];
 for (let row = 0; row < appConfig.gridSize; row++) {
@@ -32,9 +36,9 @@ for (let i = 0; i < appConfig.numberOfCheese; i++) {
 
 const findClosestCheese = (mouse, cheeseArr) => {
     const distance = cheeseArr.map(c => {
-        const xLen = Math.pow(mouse[0] - c[0], 2);
-        const yLen = Math.pow(mouse[1] - c[1], 2)
-        return xLen + yLen;
+        const x_squared = Math.pow(mouse[0] - c[0], 2);
+        const y_squared = Math.pow(mouse[1] - c[1], 2)
+        return x_squared + y_squared;
     })
     return distance.indexOf(Math.min(...distance));
 }
@@ -54,7 +58,7 @@ const getCheese = (mouse, cheese) => {
         if(cy!==my){ dir += (cy<my) ? "N" : "S"; }
         if(cx!==mx){ dir+= (cx<mx) ? "W" : "E"; }
 
-        [mx, my] = Movements.mouse[dir]([mx, my], 20);
+        [mx, my] = ObjMovements.mouseMove(dir, [mx,my]);
         dirList.push(dir);
     }
     return [dirList, [mx, my]];
