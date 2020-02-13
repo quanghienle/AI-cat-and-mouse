@@ -45,7 +45,7 @@ class Cell extends Component {
                         alt={this.props.cellName}
                         height={`${appConfig.cellSize}px`}
                         width={`${appConfig.cellSize}px`}
-                />
+                    />
                 </button>
             </div>
         );
