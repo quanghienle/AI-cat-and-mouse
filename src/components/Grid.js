@@ -4,43 +4,35 @@ import InitState from '../utils/InitState'
 import MousePath from '../utils/MousePath'
 import Button from '@material-ui/core/Button';
 import Cell from './Cell';
-import Movements from '../utils/Movements';
+// import Movements from '../utils/Movements';
 import BFS from '../search/BFS';
+import DFS from '../search/DFS';
 
 class Grid extends Component {
     constructor(props) {
         super(props);
-        const { gridSize, numberOfCheese, numberOfMice, cellSize } = appConfig;
+        this.state = this.initGameState();
+    }
+
+    // ObjMovements = new Movements();
+
+    initGameState() {
+        const { gridSize, numberOfCheese, numberOfMice} = appConfig;
         const init = new InitState(gridSize, numberOfCheese, numberOfMice);
         const { catLocation, mouseLocations, cheeseLocations } = init.getInitialState();
-        const mousePath = new MousePath(mouseLocations[0], cheeseLocations).findMousePath()[1];
-        const catPath = new BFS().bfs(catLocation, mousePath);
+        const mousePath = new MousePath(mouseLocations[0], cheeseLocations).findMousePath()[1];;
+        console.log(mousePath);
 
-        this.state = {
+        return {
+            start: false,
             mouseTurn: true,
-            stateNum: 0,
-            gridSize: gridSize,
-            cellSize: cellSize,
+            stateNum: 1,
             catLocation: catLocation,
             mouseLocation: mouseLocations[0],
             cheeseLocations: cheeseLocations,
             mousePath: mousePath,
-            catPath: catPath,
+            catPath: [catLocation],
         }
-
-    }
-
-    ObjMovements = new Movements();
-
-    mouseMove = (dir) => {
-        // console.log(this.state.mouseCoords);
-        const nextMove = this.ObjMovements.mouseMove(dir, this.state.mouseLocation);
-        this.setState({ mouseLocation: nextMove });
-    }
-
-    catMove = (dir) => {
-        const nextMove = this.ObjMovements.catMove(dir, this.state.catLocation);
-        this.setState({ catLocation: nextMove });
     }
 
     mouseEatsCheese() {
@@ -48,23 +40,40 @@ class Grid extends Component {
         this.setState({ cheeseLocations: this.state.cheeseLocations.filter(canEatCheese) });
     }
 
+    catCaughtMouse() {
+        return this.state.catLocation[0] === this.state.mouseLocation[0]
+            && this.state.catLocation[1] === this.state.mouseLocation[1];
+    }
 
-    componentDidMount() {
-        
-        const intervalId = setInterval(() => {
-            const iteration = this.state.stateNum;
-            const nextLocation = this.state.mousePath[iteration];
-            this.setState({ mouseLocation: nextLocation });
 
-            this.setState({ catLocation: this.state.catPath[iteration].getCatCoords() });
-            this.mouseEatsCheese();
+    componentDidUpdate(prevProps, prevState, snapshot) {
 
-            const cond = JSON.stringify(this.state.catLocation) === JSON.stringify(this.state.mouseLocation);
+        if (this.state.start && this.state.start !== prevState.start) {
+            const intervalId = setInterval(() => {
+                const iteration = this.state.stateNum;
 
-            (iteration === this.state.mousePath.length - 1 || cond)
-                ? clearInterval(intervalId)
-                : this.setState({ stateNum: iteration + 1 });
-        }, 1000);
+                if (this.state.mouseTurn) {
+                    // const index = iteration > this.state.catPath.length - 1 ? this.state.catPath.length - 1 : iteration;
+                    const nextLocation = this.state.mousePath[iteration];
+                    console.log("mouse:\t", nextLocation);
+                    this.setState({ mouseLocation: nextLocation });
+                    this.mouseEatsCheese();
+                    this.setState({ mouseTurn: false });
+                } else {
+                    const index = iteration > this.state.catPath.length - 1 ? this.state.catPath.length - 1 : iteration;
+                    console.log("cat:\t", this.state.catPath[index]);
+                    this.setState({ catLocation: this.state.catPath[index] });
+                    this.setState({ mouseTurn: true });
+                    this.setState({ stateNum: iteration + 1 });
+                }
+
+                if (iteration === this.state.mousePath.length || this.catCaughtMouse()) {
+                    clearInterval(intervalId);
+                }
+            }, 1000);
+        }
+
+
     }
 
     render() {
@@ -73,18 +82,18 @@ class Grid extends Component {
                 <div
                     className="grid"
                     style={{
-                        width: this.state.gridSize * this.state.cellSize,
-                        height: this.state.gridSize * this.state.cellSize,
+                        width: appConfig.gridSize * appConfig.cellSize,
+                        height: appConfig.gridSize * appConfig.cellSize,
                         position: "relative",
                         margin: "50px auto",
                         outline: "2px solid red",
-                        backgroundSize: `${this.state.cellSize}px ${this.state.cellSize}px`,
+                        backgroundSize: `${appConfig.cellSize}px ${appConfig.cellSize}px`,
                         backgroundImage: "linear-gradient(to right, lavender 1px, transparent 1px),"
                             + "linear-gradient(to bottom, lavender 1px, transparent 1px)",
                     }}>
 
                     {/* {Object.keys(this.ObjMovements.mouseMovements).map(dir => {
-                        const coor = this.ObjMovements.mouseMove(dir, this.state.mouseLocation, this.state.gridSize - 1);
+                        const coor = this.ObjMovements.mouseMove(dir, this.state.mouseLocation, appConfig.gridSize - 1);
                         return <Cell cellName="guide" xyCoor={coor} onClick={() => this.mouseMove(dir)} />
                     })} */}
 
@@ -94,19 +103,65 @@ class Grid extends Component {
                     })} */}
 
                     {this.state.cheeseLocations.map((cheese, index) =>
-                        <Cell cellName="cheese" xyCoor={cheese} />
+                        <Cell cellName="cheese" key={index} xyCoor={cheese} />
                     )}
                     <Cell cellName="mouse" xyCoor={this.state.mouseLocation} />
                     <Cell cellName="cat" xyCoor={this.state.catLocation} />
 
                 </div>
 
+                <div>
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => {
+                            const newCatPath = new DFS(this.state.catLocation, this.state.mousePath).findPath();
+                            console.log(newCatPath);
+                            this.setState({ catPath: newCatPath });
+                            this.setState({ start: true });
+                        }}>
+                        DFS
+                    </Button>
+
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => {
+                            const newCatPath = new BFS(this.state.catLocation, this.state.mousePath).findPath();
+                            console.log(newCatPath);
+                            this.setState({ catPath: newCatPath });
+                            this.setState({ start: true });
+                        }}>
+                        BFS
+                    </Button>
+
+                    {/* <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={this.setState(this.initGameState())}>
+                        Restart */}
+                    {/* </Button> */}
+
+                </div>
+
+                {/* <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => {
+                        this.setState({ start: true });
+                    }}>
+                    Start
+                </Button> */}
+
                 {/* <div>
                     {Object.keys(this.ObjMovements.mouseMovements).map(dir => {
                         return <Button
                             variant="outlined"
                             color="primary"
-                            onClick={() => { this.mouseMove(dir) }}>
+                            onClick={() => {
+                                const nextMove = this.ObjMovements.mouseMove(dir, this.state.mouseLocation);
+                                this.setState({ mouseLocation: nextMove });
+                            }}>
                             {dir}
                         </Button>
                     })}
@@ -117,7 +172,10 @@ class Grid extends Component {
                         return <Button
                             variant="outlined"
                             color="primary"
-                            onClick={() => { this.catMove(dir) }}>
+                            onClick={() => {
+                                const nextMove = this.ObjMovements.catMove(dir, this.state.catLocation);
+                                this.setState({ catLocation: nextMove });
+                            }}>
                             {dir}
                         </Button>
 

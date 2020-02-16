@@ -40,7 +40,7 @@ export default class MousePath {
 
     findMousePath(){
         let path = [];
-        let mouseLocationsPath = [];
+        let mouseLocationsPath = [this.mouseLocation];
         while (this.cheeseLocations.length !== 0) {
             const index = this.findClosestCheese(this.mouseLocation, this.cheeseLocations);
             const [dirList, mouseLocationsList] = this.getCheese(this.mouseLocation, this.cheeseLocations[index]);

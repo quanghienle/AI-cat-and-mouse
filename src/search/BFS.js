@@ -4,46 +4,32 @@ import Movements from '../utils/Movements';
 
 export default class BFS {
 
-    bfs(catLocation, mousePath) {
+    constructor(catLocation, mousePath){
+        this.catLocation = catLocation;
+        this.mousePath = mousePath;
+    }
 
-        const dirs = Object.keys(new Movements().catMovements); 
-
+    findPath() {
+        const catDirections = Object.keys(new Movements().catMovements); 
         const q = new Queue();
-
-        let node = new Node(catLocation, mousePath[0], 0);
-        let path = []
+        let node = new Node(this.catLocation, this.mousePath[0], 0);
         q.enqueue([node]);
 
-        while (!node.catCatchesMouse()) {
-            // node = q.dequeue();
-            path = q.dequeue();
+        while (true) {
+            const path = q.dequeue();
             node = path[path.length - 1];
            
-            if (node.catCatchesMouse() || node.getDepth() >= mousePath.length){
-                break;
+            if (node.catCatchesMouse() || node.getDepth() >= this.mousePath.length-1){
+                return path.map(e => e.getCatLocation());
             }
-        //     console.log(node.getCatCorrds());
 
-            for(let i=0; i<8; i++){
-                const direction = dirs[i];
-                if(!node.catHitsWall(direction)){
-
-                    const nextNode = node.getNextNode(direction, mousePath);
-                    
-                    const new_path = [...path];
-                    new_path.push(nextNode);
-                    q.enqueue(new_path);
+            for(const dir of catDirections){
+                if(!node.catHitsWall(dir)){
+                    const nextNode = node.getNextNode(dir, this.mousePath);
+                    q.enqueue([...path, nextNode]);
                 }
             }
         }
-
-        path.forEach(element => {
-            console.log(element.display());
-        });
-
-        // const p = path.map(e => e.getCatLoc);
-        return path;
-
     }
 
 }
