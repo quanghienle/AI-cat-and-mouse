@@ -7,11 +7,14 @@ import Cell from './Cell';
 // import Movements from '../utils/Movements';
 import BFS from '../search/BFS';
 import DFS from '../search/DFS';
+import A_star from '../search/A_star';
+import Heuristics from '../search/Heuristics';
 
 class Grid extends Component {
     constructor(props) {
         super(props);
         this.state = this.initGameState();
+        // this.reset = this.reset.bind(this)
     }
 
     // ObjMovements = new Movements();
@@ -35,6 +38,12 @@ class Grid extends Component {
         }
     }
 
+    reset() {
+        window.location.reload();
+   
+        }
+        
+
     mouseEatsCheese() {
         const canEatCheese = cheese => !(JSON.stringify(cheese) === JSON.stringify(this.state.mouseLocation));
         this.setState({ cheeseLocations: this.state.cheeseLocations.filter(canEatCheese) });
@@ -51,6 +60,7 @@ class Grid extends Component {
         if (this.state.start && this.state.start !== prevState.start) {
             const intervalId = setInterval(() => {
                 const iteration = this.state.stateNum;
+                
 
                 if (this.state.mouseTurn) {
                     // const index = iteration > this.state.catPath.length - 1 ? this.state.catPath.length - 1 : iteration;
@@ -68,9 +78,13 @@ class Grid extends Component {
                 }
 
                 if (iteration === this.state.mousePath.length || this.catCaughtMouse()) {
+                    // this.reset()
+                    // this.setState({ start: false});
                     clearInterval(intervalId);
+                    
                 }
             }, 1000);
+            // console.log(this.state.start)
         }
 
 
@@ -135,12 +149,54 @@ class Grid extends Component {
                         BFS
                     </Button>
 
-                    {/* <Button
+
+                    <Button
                         variant="outlined"
                         color="primary"
-                        onClick={this.setState(this.initGameState())}>
-                        Restart */}
-                    {/* </Button> */}
+                        onClick={() => {
+                            const h = Heuristics.pythagorean;
+                            const newCatPath = new A_star(this.state.catLocation, this.state.mousePath, h).findPath();
+                            console.log(newCatPath);
+                            this.setState({ catPath: newCatPath });
+                            this.setState({ start: true });
+                        }}>
+                        A* Pythagorean
+                    </Button>
+
+
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => {
+                            const h = Heuristics.middlePoint;
+                            const newCatPath = new A_star(this.state.catLocation, this.state.mousePath, h).findPath();
+                            console.log(newCatPath);
+                            this.setState({ catPath: newCatPath });
+                            this.setState({ start: true });
+                        }}>
+                        A* Middle Point
+                    </Button>
+
+
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => {
+                            const h = Heuristics.average;
+                            const newCatPath = new A_star(this.state.catLocation, this.state.mousePath, h).findPath();
+                            console.log(newCatPath);
+                            this.setState({ catPath: newCatPath });
+                            this.setState({ start: true });
+                        }}>
+                        A* Average
+                    </Button>
+
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={this.reset}>
+                        Restart 
+                    </Button>
 
                 </div>
 

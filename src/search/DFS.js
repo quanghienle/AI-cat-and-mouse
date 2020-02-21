@@ -10,27 +10,24 @@ export default class DFS {
     }
 
     findPath() {
-        const catDirections = Object.keys(new Movements().catMovements);
         const stack = new Stack();
-        let node = new Node(this.catLocation, this.mousePath[0], 0);
-        stack.push([node]);
+        const startState = {
+            catLocation: this.catLocation,
+            mouseLocation: this.mousePath[0],
+        }
+
+        stack.push(new Node(null, startState, 0, 0));
 
         while (true) {
-            const path = stack.pop();
-            node = path[path.length - 1];
+            const node = stack.pop();
 
+            // get cat's possible move directions -> filterring directions -> add to queue
+            Object.keys(Movements.catMovements)
+                .filter(dir => !node.catHitsWall(dir) && (node.depth < this.mousePath.length - 2))
+                .forEach(dir => stack.push(node.getNextNode(dir, this.mousePath, 0)));
 
-            if(node.getDepth() < this.mousePath.length-2){
-                for (const dir of catDirections) {
-                    if (!node.catHitsWall(dir)) {
-                        const nextNode = node.getNextNode(dir, this.mousePath);
-                        stack.push([...path, nextNode]);
-                    }
-                }
-            }
-
-            if (node.catCatchesMouse() || stack.isEmpty()){
-                return path.map(e => e.getCatLocation()); 
+            if (node.catCatchesMouse() || stack.isEmpty()) {
+                return node.getPath();
             }
         }
     }

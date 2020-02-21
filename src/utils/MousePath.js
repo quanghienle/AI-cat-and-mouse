@@ -3,7 +3,7 @@ import Movements from './Movements';
 export default class MousePath {
 
     constructor(mouseLocation, cheeseLocations) {
-        this.ObjMovements = new Movements();
+        // this.ObjMovements = new Movements();
         this.mouseLocation = [...mouseLocation];
         this.cheeseLocations = [...cheeseLocations];
     }
@@ -31,7 +31,7 @@ export default class MousePath {
             if (cy !== my) { dir += (cy < my) ? "N" : "S"; }
             if (cx !== mx) { dir += (cx < mx) ? "W" : "E"; }
 
-            [mx, my] = this.ObjMovements.mouseMove(dir, [mx, my]);
+            [mx, my] = Movements.mouseMove(dir, [mx, my]);
             mouseLocationsList.push([mx, my]);
             directionsList.push(dir);
         }

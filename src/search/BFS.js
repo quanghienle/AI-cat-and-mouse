@@ -4,32 +4,32 @@ import Movements from '../utils/Movements';
 
 export default class BFS {
 
-    constructor(catLocation, mousePath){
+    constructor(catLocation, mousePath) {
         this.catLocation = catLocation;
         this.mousePath = mousePath;
     }
 
     findPath() {
-        const catDirections = Object.keys(new Movements().catMovements); 
-        const q = new Queue();
-        let node = new Node(this.catLocation, this.mousePath[0], 0);
-        q.enqueue([node]);
+        
+        const queue = new Queue();
+        const startState = {
+            catLocation: this.catLocation,
+            mouseLocation: this.mousePath[0],
+        }
+
+        queue.enqueue(new Node(null, startState, 0, 0));
 
         while (true) {
-            const path = q.dequeue();
-            node = path[path.length - 1];
-           
-            if (node.catCatchesMouse() || node.getDepth() >= this.mousePath.length-1){
-                return path.map(e => e.getCatLocation());
-            }
+            const node = queue.dequeue();
 
-            for(const dir of catDirections){
-                if(!node.catHitsWall(dir)){
-                    const nextNode = node.getNextNode(dir, this.mousePath);
-                    q.enqueue([...path, nextNode]);
-                }
+            // get cat's possible move directions -> filterring directions -> add to stack
+            Object.keys(Movements.catMovements)
+                .filter(dir => !node.catHitsWall(dir) && (node.depth < this.mousePath.length - 2))
+                .forEach(dir => queue.enqueue(node.getNextNode(dir, this.mousePath, 0)));
+
+            if (node.catCatchesMouse() || queue.isEmpty()) {
+                return node.getPath();
             }
         }
     }
-
 }

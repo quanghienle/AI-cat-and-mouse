@@ -1,43 +1,42 @@
 import Movements from '../utils/Movements';
 
 export default class Node {
-    constructor(catLocation, mouseLocation, depth) {
-        this.catLocation = catLocation;
+    constructor(parent, state, depth, current_cost) {
+        this.parent = parent;
+        this.state = state;
         this.depth = depth;
-        this.mouseLocation = mouseLocation;
-        this.movements = new Movements();
-        this.heuristic = null;
-        // this.cost_fn = cost_fn;
-        // this.distance_travelled = distance_travelled;
+        this.current_cost = current_cost || 0;
     }
 
-
-    getDepth() {
-        return this.depth;
-    }
-
-    getCatLocation(){
-        return this.catLocation;
+    getPath() {
+        let currNode = this;
+        const path = [];
+        while(currNode){
+            path.unshift(currNode.state.catLocation);
+            currNode = currNode.parent;
+        }
+        return path;
     }
 
     catCatchesMouse() {
-        return JSON.stringify(this.catLocation) === JSON.stringify(this.mouseLocation);
+        return JSON.stringify(this.state.catLocation) === JSON.stringify(this.state.mouseLocation);
     }
 
     catHitsWall(direction) {
-        const newCatLocation = this.movements.catMove(direction, this.catLocation); 
-        return this.catLocation[0]===newCatLocation[0] && this.catLocation[1]===newCatLocation[1]; 
+        const newCatLocation = Movements.catMove(direction, this.state.catLocation);
+        return JSON.stringify(this.state.catLocation) === JSON.stringify(newCatLocation);
     }
 
     display() {
-        return this.depth + " - " + this.catLocation + " - " + this.mouseLocation;
+        return this.depth + " - " + this.state.catLocation + " - " + this.state.mouseLocation;
     }
 
-    getNextNode(direction, mousePath){
+    getNextNode(direction, mousePath, cost) {
         const index = this.depth >= mousePath.length ? mousePath.length - 1 : this.depth + 1;
-        const newMouseLocation = mousePath[index];
-        const newCatLocation = this.movements.catMove(direction, this.catLocation);  
-        return new Node(newCatLocation, newMouseLocation, this.depth+1);
+        const nextState = {
+            catLocation: Movements.catMove(direction, this.state.catLocation),
+            mouseLocation: mousePath[index],
+        }
+        return new Node(this, nextState, this.depth+1, cost);
     }
-
 }

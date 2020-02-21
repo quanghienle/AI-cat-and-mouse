@@ -1,5 +1,5 @@
 const config={
-    numberOfCheese: 5,
+    numberOfCheese: 3,
     numberOfMice: 1,
     gridSize: 10,
     cellSize: 40,
