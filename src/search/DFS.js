@@ -10,6 +10,7 @@ export default class DFS {
     }
 
     findPath() {
+        let iteration = 0;
         const stack = new Stack();
         const startState = {
             catLocation: this.catLocation,
@@ -19,6 +20,7 @@ export default class DFS {
         stack.push(new Node(null, startState, 0, 0));
 
         while (true) {
+            iteration += 1;
             const node = stack.pop();
 
             // get cat's possible move directions -> filterring directions -> add to queue
@@ -27,7 +29,10 @@ export default class DFS {
                 .forEach(dir => stack.push(node.getNextNode(dir, this.mousePath, 0)));
 
             if (node.catCatchesMouse() || stack.isEmpty()) {
-                return node.getPath();
+                const catPath = node.getPath();
+                console.log("Depth First Search: ", iteration, " iterations");
+                console.log("Cat Path: ", catPath);
+                return catPath;
             }
         }
     }

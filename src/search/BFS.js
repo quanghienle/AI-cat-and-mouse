@@ -10,7 +10,7 @@ export default class BFS {
     }
 
     findPath() {
-        
+        let iteration = 0;
         const queue = new Queue();
         const startState = {
             catLocation: this.catLocation,
@@ -20,6 +20,7 @@ export default class BFS {
         queue.enqueue(new Node(null, startState, 0, 0));
 
         while (true) {
+            iteration += 1;
             const node = queue.dequeue();
 
             // get cat's possible move directions -> filterring directions -> add to stack
@@ -28,7 +29,10 @@ export default class BFS {
                 .forEach(dir => queue.enqueue(node.getNextNode(dir, this.mousePath, 0)));
 
             if (node.catCatchesMouse() || queue.isEmpty()) {
-                return node.getPath();
+                const catPath = node.getPath();
+                console.log("Breadth First Search: ", iteration, " iterations")
+                console.log("Cat Path: ", catPath)
+                return catPath;
             }
         }
     }

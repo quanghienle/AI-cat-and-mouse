@@ -3,7 +3,8 @@ import appConfig from '../appConfig';
 import cheeseImg from '../assets/cheese.png';
 import catImg from '../assets/cat.png';
 import mouseImg from '../assets/mouse.png';
-import guideImg from '../assets/guide.png';
+// import guideImg from '../assets/guide.png';
+import guideImg from '../assets/offwhite.png';
 
 const images = {
     "cheese": cheeseImg,

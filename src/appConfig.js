@@ -9,7 +9,8 @@ const config={
         "cheese": "yellow",
         "empty": "white",
         "guide": "lavender"
-    }
+    },
+    speed: 1000,
 }
 
 export default config;
