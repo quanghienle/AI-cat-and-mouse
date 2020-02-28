@@ -1,6 +1,6 @@
-import Movements from '../utils/Movements';
+import Movements from '../utils/Movements.js';
 
-import Node from './Node';
+import Node from './Node.js';
 export default class A_star {
 
     constructor(catLocation, mousePath, heuristic) {

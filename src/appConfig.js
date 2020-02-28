@@ -1,7 +1,7 @@
 const config={
     numberOfCheese: 3,
     numberOfMice: 1,
-    gridSize: 10,
+    gridSize: 15,
     cellSize: 40,
     color: {
         "cat": "blue",

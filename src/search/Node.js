@@ -1,4 +1,4 @@
-import Movements from "../utils/Movements";
+import Movements from "../utils/Movements.js";
 
 export default class Node {
   constructor(parent, state, depth, current_cost) {

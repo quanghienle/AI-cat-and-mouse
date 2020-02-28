@@ -1,4 +1,4 @@
-import Movements from './Movements';
+import Movements from './Movements.js';
 
 export default class MousePath {
 
@@ -38,7 +38,7 @@ export default class MousePath {
         return [directionsList, mouseLocationsList];
     }
 
-    findMousePath(){
+    findMousePath(step){
         let path = [];
         let mouseLocationsPath = [this.mouseLocation];
         while (this.cheeseLocations.length !== 0) {
@@ -50,7 +50,10 @@ export default class MousePath {
             mouseLocationsPath.push(...mouseLocationsList);
             this.cheeseLocations.splice(index, 1)
         }
-        // console.log(mouseLocationsPath);
-        return [path, mouseLocationsPath];
+        const mouse = mouseLocationsPath.filter((location, index, arr) => {
+            return (index % step) === 0 || index === mouseLocationsPath.length-1
+        })
+        console.log(mouse)
+        return [path, mouse];
     }
 }

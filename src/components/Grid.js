@@ -1,102 +1,70 @@
 import React, { Component } from "react";
 import appConfig from "../appConfig";
-import InitState from "../utils/InitState";
 import MousePath from "../utils/MousePath";
 import Button from "@material-ui/core/Button";
 import Cell from "./Cell";
-import Movements from "../utils/Movements";
 import Searches from "../search/SearchAlgo";
 import "./Grid.css";
+import _ from "underscore";
 
 class Grid extends Component {
   constructor(props) {
     super(props);
-    const { gridSize, numberOfCheese, numberOfMice } = appConfig;
-
-    const init = new InitState(gridSize, numberOfCheese, numberOfMice);
-
-    const {
-      catLocation,
-      mouseLocations,
-      cheeseLocations
-    } = init.getInitialState();
-
-    const mousePath = new MousePath(
-      mouseLocations[0],
-      cheeseLocations
-    ).findMousePath()[1];
-
-    console.log("Mouse Path:\t", mousePath);
-
     this.state = {
-      data: "",
+      loading: true,
       start: false,
       mouseTurn: true,
-      stateNum: 1,
-      catLocation: catLocation,
-      mouseLocation: mouseLocations[0],
-      cheeseLocations: cheeseLocations,
-      mousePath: mousePath,
-      catPath: [catLocation]
+      stateNum: 1
     };
-  }
-
-  test_case() {
-    const mouse = [9, 0];
-    const cat = [1, 9];
-    const cheese = [
-      [7, 5],
-      [5, 1],
-      [2, 7]
-    ];
-    const mousePath = new MousePath(mouse, cheese).findMousePath()[1];
-
-    console.log(mousePath);
-
-    this.setState({ start: false });
-    this.setState({ mouseTurn: true });
-    this.setState({ stateNum: 1 });
-    this.setState({ catLocation: cat });
-    this.setState({ mouseLocation: mouse });
-    this.setState({ cheeseLocations: cheese });
-    this.setState({ mousePath: mousePath });
   }
 
   reset() {
     window.location.reload();
   }
 
-  catMove = dir => {
-    const nextMove = Movements.catMove(dir, this.state.catLocation);
-    this.setState({ catLocation: nextMove });
-  };
-
-  mouseEatsCheese() {
-    const canEatCheese = cheese =>
-      !(
-        cheese[0] === this.state.mouseLocation[0] &&
-        cheese[1] === this.state.mouseLocation[1]
-      );
+  mouseMove(iteration) {
+    const nextLocation = this.state.mousePath[iteration];
+    console.log("mouse:\t", nextLocation);
+    const allCheese = this.state.cheeseLocations.filter(
+      cheese => !_.isEqual(cheese, this.state.mouseLocation)
+    );
     this.setState({
-      cheeseLocations: this.state.cheeseLocations.filter(canEatCheese)
+      mouseLocation: nextLocation,
+      mouseTurn: false,
+      cheeseLocations: allCheese
     });
   }
 
-  catCaughtMouse() {
-    return (
-      this.state.catLocation[0] === this.state.mouseLocation[0] &&
-      this.state.catLocation[1] === this.state.mouseLocation[1]
-    );
+  catMove(iteration) {
+    const index =
+      iteration > this.state.catPath.length - 1
+        ? this.state.catPath.length - 1
+        : iteration;
+    console.log("cat:\t", this.state.catPath[index]);
+    this.setState({
+      catLocation: this.state.catPath[index],
+      mouseTurn: true,
+      stateNum: iteration + 1
+    });
   }
 
-  componentDidMount() {
+  UNSAFE_componentWillMount() {
     this.callBackendAPI()
-      .then(res => this.setState({ data: res.express }))
+      .then(res => {
+        console.log("Mouse Path: ", res.mousePath);
+        this.setState({
+          catLocation: res.catLocation,
+          mouseLocation: res.mouseLocation,
+          cheeseLocations: res.cheeseLocations,
+          mousePath: res.mousePath,
+          loading: false
+        });
+      })
       .catch(err => console.log(err));
   }
 
   callBackendAPI = async () => {
-    const response = await fetch("/backend");
+    const response = await fetch("/init");
     const body = await response.json();
 
     if (response.status !== 200) {
@@ -105,31 +73,35 @@ class Grid extends Component {
     return body;
   };
 
+  handleOnclick = async index => {
+    const response = await fetch("/search", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        searchIndex: index,
+        cat: this.state.catLocation,
+        mousePath: this.state.mousePath
+      })
+    });
+    const body = await response.json();
+    console.log("Cat Path: ", body.catPath);
+    this.setState({ catPath: body.catPath, start: true });
+  };
+
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (this.state.start && this.state.start !== prevState.start) {
       const intervalId = setInterval(() => {
         const iteration = this.state.stateNum;
 
-        if (this.state.mouseTurn) {
-          const nextLocation = this.state.mousePath[iteration];
-          console.log("mouse:\t", nextLocation);
-          this.setState({ mouseLocation: nextLocation });
-          this.mouseEatsCheese();
-          this.setState({ mouseTurn: false });
-        } else {
-          const index =
-            iteration > this.state.catPath.length - 1
-              ? this.state.catPath.length - 1
-              : iteration;
-          console.log("cat:\t", this.state.catPath[index]);
-          this.setState({ catLocation: this.state.catPath[index] });
-          this.setState({ mouseTurn: true });
-          this.setState({ stateNum: iteration + 1 });
-        }
+        this.state.mouseTurn
+          ? this.mouseMove(iteration)
+          : this.catMove(iteration);
 
         if (
           iteration === this.state.mousePath.length - 1 ||
-          this.catCaughtMouse()
+          _.isEqual(this.state.catLocation, this.state.mouseLocation)
         ) {
           clearInterval(intervalId);
         }
@@ -137,26 +109,46 @@ class Grid extends Component {
     }
   }
 
+  test_case() {
+    const mouse = [1, 9];
+    const cat = [10, 3];
+    const cheese = [
+      [9, 1],
+      [3, 2],
+      [0, 6]
+    ];
+    const mousePath = new MousePath(mouse, cheese).findMousePath(1)[1];
+
+    console.log(mousePath);
+
+    this.setState({
+      start: false,
+      mouseTurn: true,
+      stateNum: 1,
+      catLocation: cat,
+      mouseLocation: mouse,
+      cheeseLocations: cheese,
+      mousePath: mousePath
+    });
+  }
+
+
+
   render() {
     return (
       <div className="game-container">
         <div className="search-buttons">
-          {Searches(this.state.catLocation, this.state.mousePath).map(
-            (e, index) => (
-              <Button
-                key={index}
-                variant="outlined"
-                color="primary"
-                onClick={() => {
-                  const newCatPath = e.search.findPath();
-                  this.setState({ catPath: newCatPath });
-                  this.setState({ start: true });
-                }}
-              >
-                {e.name}
-              </Button>
-            )
-          )}
+          {Searches(null, null).map((e, index) => (
+            <Button
+              key={index}
+              variant="outlined"
+              color="primary"
+              onClick={() => this.handleOnclick(index)}
+            >
+              {e.name}
+            </Button>
+          ))}
+
           <Button
             variant="outlined"
             color="primary"
@@ -164,8 +156,10 @@ class Grid extends Component {
           >
             Test
           </Button>
+
           <Button variant="outlined" color="primary" onClick={this.reset}>
-            {this.state.data}
+            {" "}
+            Reset{" "}
           </Button>
         </div>
 
@@ -177,22 +171,17 @@ class Grid extends Component {
             backgroundSize: `${appConfig.cellSize}px ${appConfig.cellSize}px`
           }}
         >
-          {/* {Object.keys(Movements.catMovements).map((dir, index) => {
-            const coor = Movements.catMove(dir, this.state.catLocation);
-            return (
-              <Cell
-                key={index}
-                cellName="guide"
-                xyCoor={coor}
-                onClick={() => this.catMove(dir)}
-              />
-            );
-          })} */}
-          {this.state.cheeseLocations.map((cheese, index) => (
-            <Cell cellName="cheese" key={index} xyCoor={cheese} />
-          ))}
-          <Cell cellName="mouse" xyCoor={this.state.mouseLocation} />
-          <Cell cellName="cat" xyCoor={this.state.catLocation} />
+          {this.state.loading ? (
+            "Loading........"
+          ) : (
+            <div>
+              {this.state.cheeseLocations.map((cheese, index) => (
+                <Cell cellName="cheese" key={index} xyCoor={cheese} />
+              ))}
+              <Cell cellName="mouse" xyCoor={this.state.mouseLocation} />
+              <Cell cellName="cat" xyCoor={this.state.catLocation} />
+            </div>
+          )}
         </div>
       </div>
     );

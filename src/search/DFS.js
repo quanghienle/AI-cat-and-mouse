@@ -1,6 +1,6 @@
-import Node from './Node';
-import Stack from './Stack';
-import Movements from '../utils/Movements';
+import Node from './Node.js';
+import Stack from './Stack.js';
+import Movements from '../utils/Movements.js';
 
 export default class DFS {
 

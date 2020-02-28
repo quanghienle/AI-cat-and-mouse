@@ -1,6 +1,6 @@
-import Queue from './Queue';
-import Node from './Node';
-import Movements from '../utils/Movements';
+import Queue from './Queue.js';
+import Node from './Node.js';
+import Movements from '../utils/Movements.js';
 
 export default class BFS {
 

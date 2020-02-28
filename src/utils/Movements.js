@@ -1,4 +1,4 @@
-import appConfig from '../appConfig';
+import appConfig from '../appConfig.js';
 
 export default class Movements {
     static max = appConfig.gridSize - 1;
